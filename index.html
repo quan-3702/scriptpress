@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ScriptPress - Screenwriting Software</title>
+  <meta name="description" content="Write screenplays in industry-standard format. Automatic formatting, index cards, revisions, reports, table read, Final Draft (.fdx), Fountain and PDF. Works offline, your scripts stay on your computer.">
+  <meta name="theme-color" content="#312e81">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon-192.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><img src="icon-192.png" alt="" width="30" height="30"><span>ScriptPress</span></div>
+    <div class="top-btns">
+      <button id="newBtn" class="primary">＋ New script</button>
+      <button id="openBtn" class="tb" title="Open a Final Draft (.fdx), Fountain or text file">📂 Open</button>
+      <select id="elSel" class="tb el-sel" title="Element (Tab / Enter change it; Ctrl+1…8)" aria-label="Element type"></select>
+      <div class="seg" role="tablist"><button id="vScript" class="on">📄 Script</button><button id="vCards">🗂 Cards</button></div>
+      <button id="readBtn" class="tb">🎭 Table read <span class="pro-tag">PRO</span></button>
+      <button id="repBtn" class="tb">📊 Reports <span class="pro-tag">PRO</span></button>
+      <button id="exportBtn" class="tb">⬇ Export</button>
+      <button id="moreBtn" class="tb" aria-label="More">☰</button>
+      <button id="proBtn" class="pro-btn">★ Get Pro</button>
+    </div>
+    <div id="menu" class="menu" hidden>
+      <button id="titleBtn">🎬 Title page…</button>
+      <button id="findBtn">🔎 Find &amp; replace… <span class="kbd">Ctrl+F</span></button>
+      <button id="renameBtn">✏ Rename a character everywhere…</button>
+      <button id="revBtn">🎨 Revisions (colored pages)… <span class="pro-tag">PRO</span></button>
+      <button id="snapBtn">🕓 Drafts: save &amp; compare… <span class="pro-tag">PRO</span></button>
+      <button id="focusBtn">🧘 Focus mode <span class="kbd">F11</span></button>
+      <button id="setBtn">⚙ Page &amp; formatting settings…</button>
+      <hr>
+      <button id="dupBtn">⧉ Duplicate this script</button>
+      <button id="backupBtn">💾 Back up all scripts…</button>
+      <button id="restoreFileBtn">📂 Restore a backup…</button>
+      <hr>
+      <button id="trialBtn">🎁 Try Pro free for 7 days</button>
+      <button id="trialEndBtn" hidden>End the Pro trial</button>
+      <a href="help.html" target="_blank" rel="noopener">❓ How to use ScriptPress</a>
+      <a href="mailto:thequan03072002@gmail.com?subject=ScriptPress%20feedback">✉ Feedback &amp; support</a>
+      <button id="aboutBtn">ℹ About ScriptPress</button>
+    </div>
+    <input id="fileIn" type="file" accept=".fdx,.fountain,.spmd,.txt,.md,text/plain,application/xml" hidden>
+    <input id="backupIn" type="file" accept=".json,application/json" hidden>
+  </header>
+
+  <main class="layout">
+    <aside class="left">
+      <div class="lib-head"><h3>📚 My scripts</h3><span id="libCount" class="muted small"></span></div>
+      <div id="libList" class="lib"></div>
+      <div class="tabs" role="tablist"><button id="tScenes" class="on">Scenes</button><button id="tChars">Characters</button><button id="tNotes">Notes</button></div>
+      <input id="navSearch" class="search" type="search" placeholder="🔍 Filter…" aria-label="Filter">
+      <div id="nav" class="nav"></div>
+      <p class="fb-note">💬 Something not working the way you want? Tell me – <a href="mailto:thequan03072002@gmail.com?subject=ScriptPress%20feedback">thequan03072002@gmail.com</a>. I read every message and improve the app.</p>
+    </aside>
+
+    <section class="stage" id="stage">
+      <div id="banner" class="banner" hidden></div>
+      <div id="paperWrap" class="paper-wrap">
+        <div id="paper" class="paper" spellcheck="true" autocapitalize="off"></div>
+      </div>
+      <div id="cards" class="cards" hidden></div>
+      <div id="ac" class="ac" hidden role="listbox"></div>
+    </section>
+  </main>
+  <footer class="status">
+    <span id="stPage"></span><span id="stInfo" class="muted"></span><span class="spacer"></span><span id="stRev"></span><span id="stSaved" class="muted"></span>
+  </footer>
+
+  <dialog id="titleDialog" class="dlg">
+    <h2>Title page</h2>
+    <label class="field">Title<input id="tpTitle" type="text" maxlength="200"></label>
+    <div class="two"><label class="field">Credit<input id="tpCredit" type="text" placeholder="Written by"></label><label class="field">Author(s)<input id="tpAuthor" type="text"></label></div>
+    <label class="field">Based on (optional)<input id="tpSource" type="text" placeholder="Based on the novel by…"></label>
+    <div class="two"><label class="field">Contact (bottom left)<textarea id="tpContact" rows="3"></textarea></label><label class="field">Draft / date<input id="tpDate" type="text" placeholder="First draft – 18 November 2026"></label></div>
+    <div class="row-btns"><button id="tpOk" class="primary">✓ Done</button></div>
+  </dialog>
+
+  <dialog id="exportDialog" class="dlg wide">
+    <h2>Export</h2>
+    <div class="formats" id="formats"></div>
+    <div class="opts">
+      <label class="check"><input id="exTitle" type="checkbox" checked> Title page</label>
+      <label class="check"><input id="exNums" type="checkbox"> Scene numbers</label>
+      <label class="check"><input id="exRev" type="checkbox"> Revision marks (*) &amp; colored pages <span class="pro-tag">PRO</span></label>
+    </div>
+    <label class="field">Watermark on every page <span class="pro-tag">PRO</span><input id="exWm" type="text" maxlength="40" placeholder="e.g. CONFIDENTIAL or the reader's name"></label>
+    <p id="exMsg" class="pro-msg" hidden></p>
+    <div class="row-btns"><button id="exGo" class="primary">⬇ Save</button><button id="exPrint" class="ghost">🖨 Print</button><button id="exCancel" class="ghost">Cancel</button></div>
+  </dialog>
+
+  <dialog id="findDialog" class="dlg">
+    <h2>Find &amp; replace</h2>
+    <label class="field">Find<input id="fFind" type="text"></label>
+    <label class="field">Replace with<input id="fRepl" type="text"></label>
+    <label class="check"><input id="fCase" type="checkbox"> Match capital letters</label>
+    <p id="fMsg" class="hint"></p>
+    <div class="row-btns"><button id="fNext" class="primary">Find next</button><button id="fGo" class="ghost">Replace all</button><button id="fCancel" class="ghost">Close</button></div>
+  </dialog>
+
+  <dialog id="renameDialog" class="dlg">
+    <h2>Rename a character</h2>
+    <p class="muted small">Changes the name above every speech and wherever it appears in action and dialogue.</p>
+    <label class="field">Character<select id="rnFrom"></select></label>
+    <label class="field">New name<input id="rnTo" type="text" maxlength="60"></label>
+    <div class="row-btns"><button id="rnGo" class="primary">Rename</button><button id="rnCancel" class="ghost">Cancel</button></div>
+  </dialog>
+
+  <dialog id="setDialog" class="dlg">
+    <h2>Page &amp; formatting</h2>
+    <label class="check"><input id="sNums" type="checkbox"> Show scene numbers</label>
+    <label class="check"><input id="sLock" type="checkbox"> Lock scene numbers (new scenes become 5A, 5B…)</label>
+    <label class="check"><input id="sBold" type="checkbox"> Bold scene headings</label>
+    <label class="check"><input id="sMore" type="checkbox" checked> (MORE) and (CONT'D) when a speech breaks across pages</label>
+    <label class="check"><input id="sContd" type="checkbox" checked> Add (CONT'D) when a character speaks again after action</label>
+    <label class="check"><input id="sBreaks" type="checkbox" checked> Show page breaks while writing</label>
+    <div class="row-btns"><button id="setOk" class="primary">✓ Done</button></div>
+  </dialog>
+
+  <dialog id="revDialog" class="dlg">
+    <h2>Revisions</h2>
+    <p class="muted small">When revision mode is on, every line you change is marked with * in the margin, in the color of the current revision – just like production drafts (White, Blue, Pink, Yellow…).</p>
+    <label class="check"><input id="rvOn" type="checkbox"> Revision mode on</label>
+    <label class="field">Current revision<select id="rvColor"></select></label>
+    <p id="rvInfo" class="hint"></p>
+    <div class="row-btns"><button id="rvOk" class="primary">✓ Done</button><button id="rvClear" class="ghost">Clear all revision marks</button></div>
+  </dialog>
+
+  <dialog id="snapDialog" class="dlg wide">
+    <h2>Drafts</h2>
+    <p class="muted small">Save the script as it is now (e.g. “First draft”), then keep writing. Compare any saved draft with the current script to see exactly what changed.</p>
+    <div class="row-btns tight"><input id="snapName" type="text" maxlength="60" placeholder="Name, e.g. First draft"><button id="snapSave" class="primary">💾 Save this draft</button></div>
+    <div id="snapList" class="snap-list"></div>
+    <div id="diff" class="diff" hidden></div>
+    <div class="row-btns"><button id="snapClose" class="ghost">Close</button></div>
+  </dialog>
+
+  <dialog id="repDialog" class="dlg xwide">
+    <h2>Reports</h2>
+    <div class="tabs" role="tablist"><button data-r="scenes" class="on">Scenes</button><button data-r="chars">Characters</button><button data-r="locs">Locations</button><button data-r="tuner">Dialogue tuner</button><button data-r="words">Word use</button></div>
+    <div id="repBody" class="rep-body"></div>
+    <div class="row-btns"><button id="repCsv" class="primary">⬇ Save as CSV (Excel)</button><button id="repClose" class="ghost">Close</button></div>
+  </dialog>
+
+  <dialog id="readDialog" class="dlg wide">
+    <h2>🎭 Table read</h2>
+    <p class="muted small">Hear your script read aloud with a different voice for each character – the best way to catch clunky dialogue. Uses the voices installed on your computer.</p>
+    <div id="voiceList" class="voice-list"></div>
+    <div class="two"><label class="field">Speed<input id="rdRate" type="range" min="0.7" max="1.6" step="0.1" value="1"></label><label class="check"><input id="rdAction" type="checkbox" checked> Read scene headings and action</label></div>
+    <div class="row-btns"><button id="rdPlay" class="primary">▶ Read from the cursor</button><button id="rdStop" class="ghost" hidden>⏹ Stop</button><button id="rdClose" class="ghost">Close</button></div>
+  </dialog>
+
+  <dialog id="noteDialog" class="dlg">
+    <h2>Note</h2>
+    <textarea id="noteText" rows="5" maxlength="2000" placeholder="A note for yourself – not printed."></textarea>
+    <div class="row-btns"><button id="noteOk" class="primary">✓ Save note</button><button id="noteDel" class="ghost danger">Delete note</button><button id="noteCancel" class="ghost">Cancel</button></div>
+  </dialog>
+
+  <dialog id="proDialog" class="dlg">
+    <h2>ScriptPress Pro</h2>
+    <p class="muted">One-time purchase. Yours forever on this Microsoft account. No subscription, ever.</p>
+    <ul class="pro-list">
+      <li><strong>Unlimited scripts</strong> <span class="muted">(free: 2 scripts)</span></li>
+      <li><strong>Clean PDF</strong> without the “Made with ScriptPress” line, <strong>watermarked copies</strong> for readers</li>
+      <li><strong>Final Draft (.fdx)</strong> import and export, and <strong>Word (.docx)</strong> export</li>
+      <li><strong>Revisions</strong> – colored drafts with * marks, locked scene numbers</li>
+      <li><strong>Drafts</strong> – save versions and see exactly what changed</li>
+      <li><strong>Reports</strong> – scenes with page eighths, characters, locations, dialogue tuner, word use, CSV</li>
+      <li><strong>Table read</strong> – your script read aloud, a voice for each character</li>
+    </ul>
+    <p class="fb-note">💬 Something not working the way you want? Tell me – <a href="mailto:thequan03072002@gmail.com?subject=ScriptPress%20feedback">thequan03072002@gmail.com</a>. I read every message and improve the app.</p>
+    <p id="proMsg" class="pro-msg" hidden></p>
+    <div class="row-btns">
+      <button id="buyBtn" class="primary" autofocus>Unlock Pro</button>
+      <button id="restoreBtn" class="ghost">Restore purchase</button>
+      <button id="closePro" class="ghost">Not now</button>
+    </div>
+  </dialog>
+
+  <dialog id="aboutDialog" class="dlg">
+    <h2>ScriptPress</h2>
+    <p>Version 1.0 · Developed by <b>NTQ37</b>.</p>
+    <p class="muted small">ScriptPress™ © 2026 NTQ37. All rights reserved. Final Draft is a trademark of Final Draft, Inc.; ScriptPress is not affiliated with it. Font: Liberation Mono (SIL Open Font License 1.1, <a href="OFL-LiberationMono.txt" target="_blank" rel="noopener">license</a>).</p>
+    <div class="row-btns"><button id="aboutPro" class="primary">★ Activate Pro</button><button id="aboutClose" class="ghost">Close</button></div>
+  </dialog>
+
+  <div id="toast" class="toast" hidden></div>
+  <div id="restartBar" class="restart" hidden>A new version of ScriptPress is ready. <button id="restartBtn" class="primary">Restart now</button></div>
+  <div id="printArea" class="print-area"></div>
+  <script src="script-core.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
